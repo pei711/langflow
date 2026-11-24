@@ -130,13 +130,27 @@ This doesn't only allow the custom component you added. With `LANGFLOW_ALLOW_CUS
 Enable it only when the people authoring flows on your server are trusted, such as a single-team or single-tenant deployment. Leave it disabled in multi-tenant deployments, or where flow authors and server operators aren't the same people.
 :::
 
-The two settings combine as follows.
+Because custom component execution is restricted to superusers by default (`LANGFLOW_CUSTOM_COMPONENT_ADMIN_ONLY=true`), unauthenticated visitors are treated as non-admin users. Therefore, for custom component code to execute on the public path, you must also allow non-admin custom component execution:
 
-| `LANGFLOW_ALLOW_CUSTOM_COMPONENTS` | `LANGFLOW_ALLOW_PUBLIC_CUSTOM_COMPONENTS` | Public flow build |
-|---|---|---|
-| `true` (default) | `false` (default) | The server's own component code runs. Components the server doesn't know are refused. |
-| `true` | `true` | The code stored in the flow runs, for every node in the flow. |
-| `false` | Either | The server's own component code runs. Components the server doesn't know are refused. |
+```bash
+LANGFLOW_ALLOW_PUBLIC_CUSTOM_COMPONENTS=true
+LANGFLOW_CUSTOM_COMPONENT_ADMIN_ONLY=false
+```
+
+If `LANGFLOW_CUSTOM_COMPONENT_ADMIN_ONLY` remains `true` (the default), custom components in public flows will still be refused with:
+
+```text
+This flow contains custom components, which can't run in a shared playground.
+```
+
+The settings combine as follows for unauthenticated public flow builds:
+
+| `LANGFLOW_ALLOW_CUSTOM_COMPONENTS` | `LANGFLOW_ALLOW_PUBLIC_CUSTOM_COMPONENTS` | `LANGFLOW_CUSTOM_COMPONENT_ADMIN_ONLY` | Public flow build |
+|---|---|---|---|
+| `true` (default) | `false` (default) | Either | The server's own component code runs. Components the server doesn't know are refused. |
+| `true` | `true` | `false` | The code stored in the flow runs, for every node in the flow. |
+| `true` | `true` | `true` (default) | The server's own component code runs. Custom components are refused because anonymous visitors are not superusers. |
+| `false` | Either | Either | The server's own component code runs. Components the server doesn't know are refused. |
 
 ## Interaction with catalog governance
 
